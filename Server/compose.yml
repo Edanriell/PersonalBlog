@@ -1,0 +1,42 @@
+services:
+    postgres:
+        image: postgres:16-alpine
+        container_name: personalblog_db
+        environment:
+            POSTGRES_DB: personalblog
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: password
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+            - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+        networks:
+            - personalblog_network
+
+    api:
+        build: .
+        container_name: personalblog_api
+        ports:
+            - "8080:8080"
+        environment:
+            - DB_HOST=postgres
+            - DB_PORT=5432
+            - DB_USER=postgres
+            - DB_PASSWORD=password
+            - DB_NAME=personalblog
+            - DB_SSL_MODE=disable
+            - JWT_SECRET=secret
+            - SERVER_PORT=8080
+            - ENV=production
+        depends_on:
+            - postgres
+        networks:
+            - personalblog_network
+
+volumes:
+    postgres_data:
+
+networks:
+    personalblog_network:
+        driver: bridge
